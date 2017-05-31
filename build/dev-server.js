@@ -1,26 +1,25 @@
 require('./check-versions')()
 
-var config = require('../config')
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
-}
-
 var opn = require('opn')
 var path = require('path')
 var express = require('express')
 var webpack = require('webpack')
-var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
+var proxyMiddleware = require('http-proxy-middleware')
 
-// default port where dev server listens for incoming traffic
-var port = process.env.PORT || config.dev.port
+// 获取 config/index.js 的默认配置
+var config = require('../config')
 // automatically open browser, if not set will be false
 var autoOpenBrowser = !!config.dev.autoOpenBrowser
-// Define HTTP proxies to your custom API backend
-// https://github.com/chimurai/http-proxy-middleware
-var proxyTable = config.dev.proxyTable
+/*default port where dev server listens for incoming traffic
+如果没有指定运行端口，使用 config.dev.port 作为运行端口*/
+var port = process.env.PORT || config.dev.port
+var uri = 'http://localhost:' + port
+var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 
+// 使用 express 启动一个服务
 var app = express()
+// 启动 webpack 进行编译
 var compiler = webpack(webpackConfig)
 
 var devMiddleware = require('webpack-dev-middleware')(compiler, {
@@ -29,8 +28,16 @@ var devMiddleware = require('webpack-dev-middleware')(compiler, {
 })
 
 var hotMiddleware = require('webpack-hot-middleware')(compiler, {
-  log: () => {}
+  log: false
 })
+
+
+/*如果 Node 的环境无法判断当前是 dev / product 环境
+使用 config.dev.env.NODE_ENV 作为当前的环境*/
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
+}
+
 // force page reload when html-webpack-plugin template changes
 compiler.plugin('compilation', function (compilation) {
   compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
@@ -39,6 +46,9 @@ compiler.plugin('compilation', function (compilation) {
   })
 })
 
+// Define HTTP proxies to your custom API backend
+// https://github.com/chimurai/http-proxy-middleware
+var proxyTable = config.dev.proxyTable
 // proxy api requests
 Object.keys(proxyTable).forEach(function (context) {
   var options = proxyTable[context]
@@ -59,10 +69,8 @@ app.use(devMiddleware)
 app.use(hotMiddleware)
 
 // serve pure static assets
-var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 app.use(staticPath, express.static('./static'))
 
-var uri = 'http://localhost:' + port
 
 var _resolve
 var readyPromise = new Promise(resolve => {
