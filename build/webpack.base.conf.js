@@ -1,16 +1,19 @@
 var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
-var vueLoaderConfig = require('./vue-loader.conf')
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
 
+// 遍历入口文件夹列表，生成入口配置对象
+var entryConfig = {}
+config.build.entries.forEach(function(fname) {
+  entryConfig[fname] = './src/pages/'+ fname +'/index.js'
+})
+
 module.exports = {
-  entry: {
-    app: './src/main.js'
-  },
+  entry: entryConfig,
   output: {
     path: config.build.assetsRoot,
     filename: '[name].js',
@@ -19,27 +22,21 @@ module.exports = {
       : config.build.assetsPublicPath
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    extensions: ['.js', '.json'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js',
       '@': resolve('src')
     }
   },
   module: {
     rules: [
       {
-        test: /\.(js|vue)$/,
+        test: /\.(js)$/,
         loader: 'eslint-loader',
         enforce: 'pre',
         include: [resolve('src'), resolve('test')],
         options: {
           formatter: require('eslint-friendly-formatter')
         }
-      },
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader',
-        options: vueLoaderConfig
       },
       {
         test: /\.js$/,
