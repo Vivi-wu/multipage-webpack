@@ -6,8 +6,8 @@ var ora = require('ora') // Elegant terminal spinner
 var rm = require('rimraf') // The UNIX command rm -rf for node.
 var path = require('path')
 var chalk = require('chalk')
-var webpack = require('webpack')
 var config = require('../config')
+var webpack = require('webpack')
 var webpackConfig = require('./webpack.prod.conf')
 
 var spinner = ora('building for production...')
