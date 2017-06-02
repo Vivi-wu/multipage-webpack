@@ -9,9 +9,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 
-var env = config.build.env
-
-var webpackConfig = merge(baseWebpackConfig, {
+var prodWebpackConfig = merge(baseWebpackConfig, {
   module: {
     rules: utils.styleLoaders({
       sourceMap: config.build.productionSourceMap,
@@ -25,9 +23,8 @@ var webpackConfig = merge(baseWebpackConfig, {
     chunkFilename: utils.assetsPath('js/[id].[chunkhash].js')
   },
   plugins: [
-    // http://vuejs.github.io/vue-loader/en/workflow/production.html
     new webpack.DefinePlugin({
-      'process.env': env
+      'process.env': config.build.env
     }),
     new webpack.optimize.UglifyJsPlugin({
       compress: {
@@ -46,23 +43,6 @@ var webpackConfig = merge(baseWebpackConfig, {
         safe: true
       }
     }),
-    // generate dist index.html with correct asset hash for caching.
-    // you can customize output by editing /index.html
-    // see https://github.com/ampedandwired/html-webpack-plugin
-    new HtmlWebpackPlugin({
-      filename: config.build.index,
-      template: 'index.html',
-      inject: true,
-      minify: {
-        removeComments: true,
-        collapseWhitespace: true,
-        removeAttributeQuotes: true
-        // more options:
-        // https://github.com/kangax/html-minifier#options-quick-reference
-      },
-      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: 'dependency'
-    }),
     // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
@@ -80,8 +60,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     // extract webpack runtime and module manifest to its own file in order to
     // prevent vendor hash from being updated whenever app bundle is updated
     new webpack.optimize.CommonsChunkPlugin({
-      name: 'manifest',
-      chunks: ['vendor']
+      name: 'manifest'
     }),
     // copy custom static assets
     new CopyWebpackPlugin([
@@ -94,10 +73,44 @@ var webpackConfig = merge(baseWebpackConfig, {
   ]
 })
 
+// https://github.com/ampedandwired/html-webpack-plugin
+/**
+ * 每个配置对应于一个页面，有几个需要写几个
+ * filename: webpack编译指定文件，由html-webpack-plugin储存为html文件到输出目录。默认文件名为index.html
+ * template: 指定入口的html文件路径
+ * chunks: Limit the chunks being used
+ * inject: When passing true or 'body' all javascript resources will be
+   placed at the bottom of the body element
+ */
+var filename = ''
+config.build.entries.forEach(function(fname) {
+  if (fname === 'home') {
+    filename = 'index.html'
+  } else {
+    filename = fname + '.html'
+  }
+
+  prodWebpackConfig.plugins.push(new HtmlWebpackPlugin({
+    'filename': filename,
+    'template': './src/pages/'+ fname +'/index.html',
+    'chunks': ['vendor', 'manifest', fname],
+    'inject': true,
+    'minify': {
+      removeComments: true,
+      collapseWhitespace: true,
+      removeAttributeQuotes: true
+      // more options:
+      // https://github.com/kangax/html-minifier#options-quick-reference
+    },
+    // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+    'chunksSortMode': 'dependency'
+  }))
+})
+
 // if (config.build.productionGzip) {
 //   var CompressionWebpackPlugin = require('compression-webpack-plugin')
 
-//   webpackConfig.plugins.push(
+//   prodWebpackConfig.plugins.push(
 //     new CompressionWebpackPlugin({
 //       asset: '[path].gz[query]',
 //       algorithm: 'gzip',
@@ -114,7 +127,7 @@ var webpackConfig = merge(baseWebpackConfig, {
 
 if (config.build.bundleAnalyzerReport) {
   var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
-  webpackConfig.plugins.push(new BundleAnalyzerPlugin())
+  prodWebpackConfig.plugins.push(new BundleAnalyzerPlugin())
 }
 
-module.exports = webpackConfig
+module.exports = prodWebpackConfig
