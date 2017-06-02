@@ -17,6 +17,7 @@ module.exports = {
   output: {
     path: config.build.assetsRoot,
     filename: '[name].js',
+    // 指定静态资源url的路径前缀
     publicPath: process.env.NODE_ENV === 'development'
       ? config.dev.assetsPublicPath
       : config.build.assetsPublicPath
@@ -28,6 +29,10 @@ module.exports = {
     }
   },
   module: {
+    /*
+     配置各种类型文件的加载器, 称之为loader。当webpack遇到import ... 时,
+     会调用这里配置的loader对引用的文件进行编译
+    */
     rules: [
       {
         test: /\.(js)$/,
@@ -38,6 +43,10 @@ module.exports = {
           formatter: require('eslint-friendly-formatter')
         }
       },
+      /*
+       使用babel编译ES6/ES7/ES8为ES5代码
+       使用正则表达式匹配后缀名为.js的文件
+      */
       {
         test: /\.js$/,
         loader: 'babel-loader',
