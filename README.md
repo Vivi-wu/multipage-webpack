@@ -1,6 +1,20 @@
-# non_spa_frontend
+# Multiple entry points webpack build
 
-> A Vue.js project
+> Update from Vue cli
+
+## Expect Result
+
+1. External JS
+
+  `home.html`: home.js, vendor.js(Bootstrap (v4.0.0-alpha.6) modal, jQuery JavaScript Library v3.2.1), manifest.js
+
+  `about.html`: about.js
+
+2. External CSS
+
+  `home.html`: common.css
+
+  `about.html`: common.css, about.css
 
 ## Build Setup
 

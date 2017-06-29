@@ -32,9 +32,34 @@ var prodWebpackConfig = merge(baseWebpackConfig, {
       },
       sourceMap: true
     }),
-    // extract css into its own file
-    new ExtractTextPlugin({
-      filename: utils.assetsPath('css/[name].[contenthash].css')
+    // split vendor js into its own file
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      minChunks: function (module, count) {
+        let resource = module.resource
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          resource &&
+          /\.js$/.test(resource) &&
+          resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    }),
+    // extract common css lib (ex: bootstrap) to common.css
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common',
+      minChunks: function (module, count) {
+        let resource = module.resource
+        // 以 .css 结尾的资源，重复 require 大于 1 次
+        return resource && /\.css$/.test(resource) && count > 1
+      }
+    }),
+    // extract webpack runtime and module manifest to its own file in order to
+    // prevent vendor hash from being updated whenever app bundle is updated
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'manifest'
     }),
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
@@ -43,24 +68,9 @@ var prodWebpackConfig = merge(baseWebpackConfig, {
         safe: true
       }
     }),
-    // split vendor js into its own file
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor',
-      minChunks: function (module, count) {
-        // any required modules inside node_modules are extracted to vendor
-        return (
-          module.resource &&
-          /\.js$/.test(module.resource) &&
-          module.resource.indexOf(
-            path.join(__dirname, '../node_modules')
-          ) === 0
-        )
-      }
-    }),
-    // extract webpack runtime and module manifest to its own file in order to
-    // prevent vendor hash from being updated whenever app bundle is updated
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'manifest'
+    // extract css into its own file
+    new ExtractTextPlugin({
+      filename: utils.assetsPath('css/[name].[contenthash].css')
     }),
     // copy custom static assets
     new CopyWebpackPlugin([
